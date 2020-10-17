@@ -70,7 +70,7 @@ def signup_access():
         #エラーを表示
         if error_message is not None:
             flash(error_message, category = 'alert alert-danger')
-            return redirect (url_for('view_signup'))
+            return redirect (url_for('signup_access'))
 
         #エラーがなければ登録
         user = User(id, password)
