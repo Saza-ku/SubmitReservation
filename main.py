@@ -10,7 +10,7 @@ app = Flask(__name__)  # アプリの設定
 
 #views
 @app.route('/')
-def view_home():
+def view_login():
   return render_template(
     'index.html'
   )
@@ -36,15 +36,53 @@ def signup():
     #重複をチェック
     #ログインできるかチェック
 
+    #エラーを表示
+    if error_message is not None:
+        flash(error_message, category = 'alert alert-danger')
+        return redirect (url_for('view_signup'))
+
+    #エラーがなければ登録
     user = User(id, password)
     db.session.add(user)
     db.session.commit()
 
-    flash('登録が完了しました。ログインしてください。')
-    return redirect (url_for('login'))
+    flash('登録が完了しました。ログインしてください。', category = 'alert alert-info')
+    return redirect(url_for('view_login'))
 
 @app.route('/login')
 def login():
+    id = request.form['id']
+    password = request.form['password']
+
+    #エラーチェック
+    error_message = None
+    if not id:
+        error_message = 'IDの入力は必須です'
+    elif not password:
+        error_message = 'パスワードの入力は必須です'
+
+    user = db.session.querry(User).filter_by(name = 'id').first()
+
+    #ユーザー名ミス
+    if user.id is None:
+        error_message = 'ユーザー名が正しくありません'
+    #パスワードミス
+    elif user.password != password:
+        error_message = 'パスワードが正しくありません'
+    
+    #エラーを表示
+    if error_message is not None:
+        flash(error_message, category = 'alert alert-danger')
+        return redirect(url_for('view_login'))
+
+    #エラーがなければログイン完了
+    session.clear()
+    session['user_id'] = user.id
+    flash('{}さんとしてログインしました'.format(id), category = 'alert alert-info')
+    return redirect(url_for('view_home'))
+
+@app.route('/home')
+def view_home():
     pass
 
 if __name__ == "__main__":  # 実行されたら
