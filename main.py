@@ -65,6 +65,9 @@ def signup_access():
         elif not password:
             error_message = 'パスワードの入力は必須です'
         #重複をチェック
+        existing_id = session.query(User).get(id)
+        if existing_id:
+            error_message = 'このIDはすでに登録されています'
         #ログインできるかチェック
 
         #エラーを表示
