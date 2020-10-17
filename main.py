@@ -39,7 +39,7 @@ def login_access():
         #エラーを表示
         if error_message is not None:
             flash(error_message, category = 'alert alert-danger')
-            return redirect(url_for('view_login'))
+            return redirect(url_for('login_access'))
 
         #エラーがなければログイン完了
         session.clear()
@@ -71,7 +71,7 @@ def signup_access():
         if error_message is not None:
             db.session.close()
             flash(error_message, category = 'alert alert-danger')
-            return redirect (url_for('view_signup'))
+            return redirect (url_for('signup_access'))
 
         #エラーがなければ登録
         user = User(id, password)
@@ -87,7 +87,7 @@ def logout():
     """ログアウトする"""
     session.clear()
     flash('ログアウトしました', category='alert alert-info')
-    return redirect(url_for('view_login'))
+    return redirect(url_for('access'))
 
 @app.route('/home')
 def view_home():
