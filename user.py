@@ -1,17 +1,18 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine, Column, String, Integer
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'#←ここ？
-db = SQLAlchemy(app)
+engine = create_engine('sqlite:///user.db')  # user.db というデータベースを使うという宣言です
+Base = declarative_base()  # データベースのテーブルの親です
 
-class User(db.Model):
-    id = db.Column(db.String(10), primary_key=True, nullable=False)
-    password = db.Column(db.String(50), unique=True, nullable=False)
-
-    def __init__(self, id, password):
-        self.id = id
-        self.password = password
+class User(Base):  # PythonではUserというクラスのインスタンスとしてデータを扱います
+    __tablename__ = 'users'  # テーブル名は users です
+    id = Column(String(10), primary_key=True, nullable=False)
+    password = Column(String(50), unique=True, nullable=False)
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return "User<{}, {}, {}>".format(self.id, self.password)
+
+Base.metadata.create_all(engine)  # 実際にデータベースを構築します
+SessionMaker = sessionmaker(bind=engine)  # Pythonとデータベースの経路です
+session = SessionMaker()  # 経路を実際に作成しました
