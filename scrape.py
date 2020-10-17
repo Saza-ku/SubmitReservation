@@ -1,6 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+from selenium import webdriver
+from time import sleep
+import datetime
 
 def login(user, pwd):
   # セッションを開始
@@ -35,3 +38,28 @@ def login(user, pwd):
   print(lt)
   print(execution)
   print(event_id)
+
+def get_cources(browser):
+  dashboard = browser.find_element_by_link_text("サイトセットアップ")
+  dashboard.click()
+  sleep(2)
+  cources = browser.find_elements_by_tag_name("tr")
+
+  urls = []
+  for cource in cources:
+      urls = cource.find_elements_by_tag_name('a')
+      for a in urls:
+          url = a.get_attribute("href")
+
+          """
+          下のif文の意図を書きます。
+          urlsに入っているaタグのhrefは二つあります。
+          1つは講義のURLでもう1つはhref="#"です。
+          href="#"が講義のURLリストに入るのは避けたいので下のif文を書きました。
+          """
+
+          if url == "#_URL": #urlsには講義のURLともう一つ別のURLが入っています。後者を避けるためのif文です。
+              continue
+          urls.append(url)
+  return cources
+
