@@ -1,0 +1,4 @@
+<index.html>
+form action = サーバーサイド
+a href = 新規登録ページ
+
