@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 from selenium import webdriver
-import chromedriver_binary
+#import chromedriver_binary
 from time import sleep
 import datetime
 from selenium.webdriver.support.select import Select
@@ -62,7 +62,7 @@ def gotoWorksite(abrowser,worksiteName):
         select_object = Select(select_element)
         select_object.select_by_visible_text("表示 1000 件ずつ")
 
-        sleep(2)
+        sleep(1)
 
         #講義を選択。
         worksiteButton = abrowser.find_element_by_partial_link_text(worksiteName)
