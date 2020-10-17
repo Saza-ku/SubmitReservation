@@ -13,51 +13,117 @@ def make_datetime(hoge,fuga):
     l = hoge.split('/')
     return datetime.datetime(int(l[0]),int(l[1]),int(l[2]),int(k[0]),int(k[1]))
 
+#引数：無。戻り値：browser
+def new_browser():
+    #ブラウザはchrome。demo用にブラウザは表示。
+    browser = webdriver.Chrome()
+    browser.get("https://panda.ecs.kyoto-u.ac.jp/portal/")
+    return browser
 
-#ブラウザはchrome,あえてブラウザは表示させました。
+#引数：browser,ユーザーID,パスワード。戻り値：loginに成功→true。
+def log_in(browser,userid,password):
+    lgin = browser.find_element_by_id("loginLink1")
+    lgin.click()
+    sleep(1)
+    
+    #usernameとpasswordは自分がいつも使ってる奴にしてください。
+    beforeUrl = browser.current_url
+    useridBox = browser.find_element_by_id("username")
+    useridBox.send_keys(userid)
+    passwordBox = browser.find_element_by_id("password")
+    passwordBox.send_keys(password)
 
-browser = webdriver.Chrome()
-browser.get("https://panda.ecs.kyoto-u.ac.jp/portal/")
+    sleep(1)
 
-lgin = browser.find_element_by_id("loginLink1")
-lgin.click()
+    login = browser.find_element_by_name("submit")
+    login.click()
 
-#usernameとpasswordは自分がいつも使ってる奴にしてください。
+    sleep(2)
+    #browser.implicitly_wait(1)
+    afterUrl = browser.current_url
 
-userid = browser.find_element_by_id("username")
-userid.send_keys("a0189727")
+    return beforeUrl == afterUrl
 
-password = browser.find_element_by_id("password")
-password.send_keys("Toriaezu1")
+#loginからにしか対応していません！！課題を提出した後に戻る関数ではありません！！
+#引数：browser,講義名　戻り値：無
+def gotoWorksite(browser,worksiteName):
+    dashboard = browser.find_element_by_link_text("サイトセットアップ")
+    dashboard.click()
 
-sleep(1)
+    sleep(1)
 
-login = browser.find_element_by_name("submit")
-login.click()
-#ここまででログインをします
-browser.implicitly_wait(3)
-dashboard = browser.find_element_by_link_text("サイトセットアップ")
-dashboard.click()
+    iframe = browser.find_element_by_id(iframeId)
+    #iframeのidがuserに固有かもしれない。
+    browser.switch_to_frame(iframe)
 
-print("login ok")
+    select_element = browser.find_element_by_id("selectPageSize")
+    select_object = Select(select_element)
+    select_object.select_by_visible_text("表示 1000 件ずつ")
 
+    sleep(2)
+
+    #講義を選択。
+    worksiteButton = browser.find_element_by_partial_link_text(nameOfWorksite)
+    worksiteUrl = worksiteButton.get_attribute("href")
+    #worksiteButton.click() #自分用なので、テスト/クイズには対応していません。
+    browser.get(worksiteUrl)
+    
+    sleep(2)
+
+    return 
+
+#main
+userId = "a0189727"
+password = "Toriaezu1"
+iframeId = "Mainf9425ba1x54e3x4846x9ae8xdc0a032aa09e"
+
+worksiteName = "情報企業論"
+assignmentName = "第5回"
+
+
+browser = new_browser()
+
+if log_in(browser,userId,password) :
+    print("log-in succeeded")
+else :
+    browser.quit()
+    exit
+
+gotoWorksite(browser,worksiteName)
+
+#左のバーから"課題"を選択。
+assignmentTabButton = browser.find_element_by_partial_link_text("課題")
+assignmentTabUrl = assignmentTabButton.get_attribute("href")
+print(assignmentTabUrl)
+#assignmentTabButton.click()
+browser.get(assignmentTabUrl)
 sleep(2)
 
-nameOfWorksite = "情報企業論"
-nameOfAssignment = ""
+'''
+#具体的な課題を選択。
+assignmentButton = browser.find_element_by_partial_link_text(nameOfAssignment)
+assignmentUrl = assignmentButton.get_attribute("href")
+assignmentButton.click()
+browser.get(assignmentUrl)
+sleep(2)
+'''
 
-iframe = browser.find_element_by_id("Mainf9425ba1x54e3x4846x9ae8xdc0a032aa09e")
-# 上について:ここのiframeのidが人によって異なるかもしれないので変えておきました。
+iframe = browser.find_element_by_class_name("portletMainIframe")
 browser.switch_to_frame(iframe)
+tt = browser.title
+assignment = browser.find_element_by_partial_link_text("課題")
+    
+try:
+    table = browser.find_element_by_xpath('/html/body/div/form/table')
+    #具体的な課題を選択。
+    assignmentButton = table.find_element_by_partial_link_text(nameOfAssignment)
+    assignmentUrl = assignmentButton.get_attribute("href")
+    #assignmentButton.click()
+    browser.get(assignmentUrl)
+    sleep(10)
 
-select_element = browser.find_element_by_id("selectPageSize")
-select_object = Select(select_element)
-select_object.select_by_visible_text("表示 1000 件ずつ")
-
-sleep(2)
-
-assignment = browser.find_element_by_partial_link_text(nameOfWorksite)
-assignment.click() #自分用なので、テスト/クイズには対応していません。
+except Exception as e:
+    pass #そもそもテーブルが用意されていない講義もあります。（民俗学とか）
 
 '''
 cources = browser.find_elements_by_tag_name("tr")
