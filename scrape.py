@@ -58,8 +58,10 @@ def get_cources(browser):
           	href="#"が講義のURLリストに入るのは避けたいので下のif文を書きました。
           	"""
 
-          	if url == "#_URL": #urlsには講義のURLともう一つ別のURLが入っています。後者を避けるためのif文です。
-				continue
-          	urls.append(url)
-  	return cources
+
+# "#_URL"にすると手元の環境だと動かない。サイトセットアップのページに戻るURLを除去したいので、そのURLをそのまま書く方が確実かと？
+          if url == "#_URL": #urlsには講義のURLともう一つ別のURLが入っています。後者を避けるためのif文です。
+              continue
+          urls.append(url)
+  return cources
 
