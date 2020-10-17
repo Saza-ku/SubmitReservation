@@ -81,6 +81,13 @@ def login():
     flash('{}さんとしてログインしました'.format(id), category = 'alert alert-info')
     return redirect(url_for('view_home'))
 
+@app.route('/logout')
+def logout():
+    """ログアウトする"""
+    session.clear()
+    flash('ログアウトしました', category='alert alert-info')
+    return redirect(url_for('view_login'))
+
 @app.route('/home')
 def view_home():
     pass
