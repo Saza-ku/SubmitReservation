@@ -38,6 +38,7 @@ def signup():
 
     #エラーを表示
     if error_message is not None:
+        db.session.close()
         flash(error_message, category = 'alert alert-danger')
         return redirect (url_for('view_signup'))
 
@@ -45,6 +46,7 @@ def signup():
     user = User(id, password)
     db.session.add(user)
     db.session.commit()
+    db.session.close()
 
     flash('登録が完了しました。ログインしてください。', category = 'alert alert-info')
     return redirect(url_for('view_login'))
@@ -62,6 +64,7 @@ def login():
         error_message = 'パスワードの入力は必須です'
 
     user = db.session.querry(User).filter_by(name = 'id').first()
+    db.session.close()
 
     #ユーザー名ミス
     if user.id is None:
