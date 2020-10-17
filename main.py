@@ -64,7 +64,7 @@ def login():
         error_message = 'パスワードの入力は必須です'
 
     user = db.session.querry(User).filter_by(name = 'id').first()
-    db.session.clear()
+    db.session.close()
 
     #ユーザー名ミス
     if user.id is None:
