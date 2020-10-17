@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang = "ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パンダ提出アプリのトップページ</title>
+  </head>
+  <body>
+    <!-- ログイン -->
+    <form  action="{{url_for('signup')}}" method="POST">
+      <P><label>ID｜<input type="text" name="username"></label></P>
+      <p><label>パスワード｜<input type="password" name="password"></label></p>
+      <p><input type="submit" value="ログイン"></p>
+    </form>
+
+    <!-- 新規登録ページへ遷移 -->
+    <p>新規登録は<a href="{{url_for('view_signup')}}">こちら</a>から</p>
+  </body>
+</html>
