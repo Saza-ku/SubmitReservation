@@ -9,80 +9,78 @@ app = Flask(__name__)  # アプリの設定
 #     return "Hello, World!"  # Hello, World! を出力
 
 #views
-@app.route('/')
-def view_login():
-  return render_template(
-    'index.html'
-  )
+@app.route('/', methods=['GET', 'POST'])
+def login_access():
+    if request.method == 'GET':
+        return render_template(
+            'index.html'
+        )
+    if request.method == 'POST':
+        id = request.form['id']
+        password = request.form['password']
 
-@app.route('/signup')
-def view_signup():
-  return render_template(
-    'signup.html'
-  )
+        #エラーチェック
+        error_message = None
+        if not id:
+            error_message = 'IDの入力は必須です'
+        elif not password:
+            error_message = 'パスワードの入力は必須です'
 
-#auth
-@app.route('/signup')
-def signup():
-    id = request.form['id']
-    password = request.form['password']
-
-    #エラーチェック
-    error_message = None
-    if not id:
-        error_message = 'IDの入力は必須です'
-    elif not password:
-        error_message = 'パスワードの入力は必須です'
-    #重複をチェック
-    #ログインできるかチェック
-
-    #エラーを表示
-    if error_message is not None:
+        user = db.session.querry(User).filter_by(name = 'id').first()
         db.session.close()
-        flash(error_message, category = 'alert alert-danger')
-        return redirect (url_for('view_signup'))
 
-    #エラーがなければ登録
-    user = User(id, password)
-    db.session.add(user)
-    db.session.commit()
-    db.session.close()
+        #ユーザー名ミス
+        if user.id is None:
+            error_message = 'ユーザー名が正しくありません'
+        #パスワードミス
+        elif user.password != password:
+            error_message = 'パスワードが正しくありません'
 
-    flash('登録が完了しました。ログインしてください。', category = 'alert alert-info')
-    return redirect(url_for('view_login'))
+        #エラーを表示
+        if error_message is not None:
+            flash(error_message, category = 'alert alert-danger')
+            return redirect(url_for('view_login'))
 
-@app.route('/login')
-def login():
-    id = request.form['id']
-    password = request.form['password']
+        #エラーがなければログイン完了
+        session.clear()
+        session['user_id'] = user.id
+        flash('{}さんとしてログインしました'.format(id), category = 'alert alert-info')
+        return redirect(url_for('view_home'))
 
-    #エラーチェック
-    error_message = None
-    if not id:
-        error_message = 'IDの入力は必須です'
-    elif not password:
-        error_message = 'パスワードの入力は必須です'
 
-    user = db.session.querry(User).filter_by(name = 'id').first()
-    db.session.close()
+@app.route('/signup', methods=['GET', 'POST'])
+def signup_access():
+    if request.method == 'GET':
+        return render_template(
+            'signup.html'
+        )
+    if request.method == 'POST':
+        id = request.form['id']
+        password = request.form['password']
 
-    #ユーザー名ミス
-    if user.id is None:
-        error_message = 'ユーザー名が正しくありません'
-    #パスワードミス
-    elif user.password != password:
-        error_message = 'パスワードが正しくありません'
-    
-    #エラーを表示
-    if error_message is not None:
-        flash(error_message, category = 'alert alert-danger')
+        #エラーチェック
+        error_message = None
+        if not id:
+            error_message = 'IDの入力は必須です'
+        elif not password:
+            error_message = 'パスワードの入力は必須です'
+        #重複をチェック
+        #ログインできるかチェック
+
+        #エラーを表示
+        if error_message is not None:
+            db.session.close()
+            flash(error_message, category = 'alert alert-danger')
+            return redirect (url_for('view_signup'))
+
+        #エラーがなければ登録
+        user = User(id, password)
+        db.session.add(user)
+        db.session.commit()
+        db.session.close()
+
+        flash('登録が完了しました。ログインしてください。', category = 'alert alert-info')
         return redirect(url_for('view_login'))
-
-    #エラーがなければログイン完了
-    session.clear()
-    session['user_id'] = user.id
-    flash('{}さんとしてログインしました'.format(id), category = 'alert alert-info')
-    return redirect(url_for('view_home'))
 
 @app.route('/logout')
 def logout():
