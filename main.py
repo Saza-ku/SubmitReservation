@@ -1,4 +1,6 @@
 from flask import *  # 必要なライブラリのインポート
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Integer, String
 
 app = Flask(__name__)  # アプリの設定
 
@@ -22,7 +24,24 @@ def view_signup():
 #auth
 @app.route('/signup')
 def signup():
-    username = request.form('username')
+    id = request.form['id']
+    password = request.form['password']
+
+    #エラーチェック
+    error_message = None
+    if not id:
+        error_message = 'IDの入力は必須です'
+    elif not password:
+        error_message = 'パスワードの入力は必須です'
+    #重複をチェック
+    #ログインできるかチェック
+
+    user = User(id, password)
+    db.session.add(user)
+    db.session.commit()
+
+    flash('登録が完了しました。ログインしてください。')
+    return redirect (url_for('login'))
 
 @app.route('/login')
 def login():
