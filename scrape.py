@@ -65,3 +65,11 @@ def get_cources(browser):
 	return cources
 
 
+
+def submit(browser):
+	try:
+		browser.find_element_by_name("post").click()
+	except Exception:
+		browser.back()
+		return
+	browser.find_element_by_link_name("eventSubmit_doConfirm_assignment_submission").click()
