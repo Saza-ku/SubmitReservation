@@ -1,8 +1,10 @@
 from flask import *  # 必要なライブラリのインポート
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String
+from user import User, session
 
 app = Flask(__name__)  # アプリの設定
+app.secret_key = "b'Q\x08\xe1Nb\\\x9c\xc0\xa1\xdaABC\x94\xd5\x15\x13\xb3t\x1c\xcf\xba\x18\x05'"
 
 # @app.route("/")  # どのページで実行する関数か設定
 # def main():
@@ -26,8 +28,7 @@ def login_access():
         elif not password:
             error_message = 'パスワードの入力は必須です'
 
-        user = db.session.querry(User).filter_by(name = 'id').first()
-        db.session.close()
+        user = session.querry(User).filter_by(name = 'id').first()
 
         #ユーザー名ミス
         if user.id is None:
@@ -39,10 +40,9 @@ def login_access():
         #エラーを表示
         if error_message is not None:
             flash(error_message, category = 'alert alert-danger')
-            return redirect(url_for('view_login'))
+            return redirect(url_for('login_access'))
 
         #エラーがなければログイン完了
-        session.clear()
         session['user_id'] = user.id
         flash('{}さんとしてログインしました'.format(id), category = 'alert alert-info')
         return redirect(url_for('view_home'))
@@ -69,25 +69,22 @@ def signup_access():
 
         #エラーを表示
         if error_message is not None:
-            db.session.close()
             flash(error_message, category = 'alert alert-danger')
             return redirect (url_for('view_signup'))
 
         #エラーがなければ登録
         user = User(id, password)
-        db.session.add(user)
-        db.session.commit()
-        db.session.close()
+        session.add(user)
+        session.commit()
 
         flash('登録が完了しました。ログインしてください。', category = 'alert alert-info')
-        return redirect(url_for('view_login'))
+        return redirect(url_for('login_access'))
 
 @app.route('/logout')
 def logout():
     """ログアウトする"""
-    session.clear()
     flash('ログアウトしました', category='alert alert-info')
-    return redirect(url_for('view_login'))
+    return redirect(url_for('login_access'))
 
 @app.route('/home')
 def view_home():
