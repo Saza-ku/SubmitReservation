@@ -21,52 +21,57 @@ def new_browser():
     return browser
 
 #引数：browser,ユーザーID,パスワード。戻り値：loginに成功→true。
-def log_in(browser,userid,password):
-    lgin = browser.find_element_by_id("loginLink1")
+def log_in(abrowser,userid,password):
+    lgin = abrowser.find_element_by_id("loginLink1")
     lgin.click()
     sleep(1)
     
     #usernameとpasswordは自分がいつも使ってる奴にしてください。
-    beforeUrl = browser.current_url
-    useridBox = browser.find_element_by_id("username")
+    beforeUrl = abrowser.current_url
+    useridBox = abrowser.find_element_by_id("username")
     useridBox.send_keys(userid)
-    passwordBox = browser.find_element_by_id("password")
+    passwordBox = abrowser.find_element_by_id("password")
     passwordBox.send_keys(password)
 
     sleep(1)
 
-    login = browser.find_element_by_name("submit")
+    login = abrowser.find_element_by_name("submit")
     login.click()
 
-    sleep(2)
+    sleep(1)
     #browser.implicitly_wait(1)
-    afterUrl = browser.current_url
+    afterUrl = abrowser.current_url
 
-    return beforeUrl == afterUrl
+    sleep(1)
+
+    browser = abrowser
+
+    return beforeUrl != afterUrl #loginに成功した場合URLが変わる→URLが一致しない。
 
 #loginからにしか対応していません！！課題を提出した後に戻る関数ではありません！！
 #引数：browser,講義名　戻り値：無
-def gotoWorksite(browser,worksiteName):
-    dashboard = browser.find_element_by_link_text("サイトセットアップ")
+def gotoWorksite(abrowser,worksiteName):
+    dashboard = abrowser.find_element_by_link_text("サイトセットアップ")
     dashboard.click()
 
     sleep(1)
 
-    iframe = browser.find_element_by_id(iframeId)
+    iframe = abrowser.find_element_by_id(iframeId)
     #iframeのidがuserに固有かもしれない。
-    browser.switch_to_frame(iframe)
+    abrowser.switch_to_frame(iframe)
 
-    select_element = browser.find_element_by_id("selectPageSize")
+    select_element = abrowser.find_element_by_id("selectPageSize")
     select_object = Select(select_element)
     select_object.select_by_visible_text("表示 1000 件ずつ")
 
     sleep(2)
 
     #講義を選択。
-    worksiteButton = browser.find_element_by_partial_link_text(nameOfWorksite)
+    worksiteButton = abrowser.find_element_by_partial_link_text(worksiteName)
     worksiteUrl = worksiteButton.get_attribute("href")
     #worksiteButton.click() #自分用なので、テスト/クイズには対応していません。
-    browser.get(worksiteUrl)
+    abrowser.get(worksiteUrl)
+    broser = abrowser
     
     sleep(2)
 
@@ -86,8 +91,10 @@ browser = new_browser()
 if log_in(browser,userId,password) :
     print("log-in succeeded")
 else :
+    print("OOOOOOOOOOhhhhhhhhhhhhh!!!!!!!!!!")
     browser.quit()
     exit
+
 
 gotoWorksite(browser,worksiteName)
 
@@ -116,7 +123,7 @@ assignment = browser.find_element_by_partial_link_text("課題")
 try:
     table = browser.find_element_by_xpath('/html/body/div/form/table')
     #具体的な課題を選択。
-    assignmentButton = table.find_element_by_partial_link_text(nameOfAssignment)
+    assignmentButton = table.find_element_by_partial_link_text(assignmentName)
     assignmentUrl = assignmentButton.get_attribute("href")
     #assignmentButton.click()
     browser.get(assignmentUrl)
