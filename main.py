@@ -1,8 +1,8 @@
 from flask import *  # 必要なライブラリのインポート
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String
-from user import User, session
-from scrape import log_in_check
+from user import User, session, Assignment
+from scrape import log_in_check, crawl_panda
 
 app = Flask(__name__)  # アプリの設定
 app.secret_key = "b'Q\x08\xe1Nb\\\x9c\xc0\xa1\xdaABC\x94\xd5\x15\x13\xb3t\x1c\xcf\xba\x18\x05'"
@@ -89,8 +89,9 @@ def logout():
 @app.route('/home')
 def view_home():
     user_id = request.args.get("id", "")
-    print(user_id)
-    return render_template('home.html', id=user_id)
+    # 課題を取得
+    assignments = session.query(Assignment).filter(Assignment.user_id == user_id).all()
+    return render_template('home.html', id=user_id, assignments = assignments)
 
 if __name__ == "__main__":  # 実行されたら
     app.run(debug=True, host='0.0.0.0', port=8888, threaded=True)  # デバッグモード、localhost:8888 で スレッドオンで実行
