@@ -5,7 +5,7 @@ import warnings
 from selenium import webdriver
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.chrome.options import Options
-
+from user import Assignment, session
 
 warnings.simplefilter("ignore",DeprecationWarning) #DeprecationWarningをターミナルで非表示
 
@@ -233,6 +233,15 @@ def crawl_panda(userId,password):
             continue
 
     browser.quit()
+
+    for ass in to_do_list:
+        #追加
+        a = session.query(Assignment).fileter(Assignment.user_id == userId and Assignment.name == ass[1] and Assignment.cource_name == ass[0] and Assignment.deadline == ass[2]).first()
+        if a is None:
+            session.add(ass)
+    #削除
+    session.query(Assignment).filter(sum(Assignment.user_id == userId and Assignment.name == x[1] and Assignment.cource_name == x[0] and Assignment.deadline == x[2] for x in to_do_list) == 0).delete()
+    session.commit()
 
     return to_do_list
 
