@@ -35,7 +35,13 @@ def log_in(abrowser,userid,password):
     afterUrl = abrowser.current_url
     browser = abrowser
 
-    return beforeUrl != afterUrl #loginに成功した場合URLが変わる→URLが一致しないという条件式はTrue。
+    return (not afterUrl.startswith("https://cas.ecs.kyoto-u.ac.jp/cas/login")) #loginに成功した場合URLが変わる→URLが一致しないという条件式はTrue。
+
+def log_in_check(userId,password) :
+    browser = new_browser()
+    ret = log_in(browser,userId,password)
+    browser.quit()
+    return ret
 
 def go_to_site_setup(abrowser) :
     try :
