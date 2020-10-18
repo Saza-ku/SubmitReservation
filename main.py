@@ -28,7 +28,7 @@ def login_access():
         user = session.query(User).filter(User.id == id).first()
 
         #ユーザー名ミス
-        if user.id is None:
+        if user is None:
             error_message = 'ユーザー名が正しくありません'
 
         #エラーを表示
