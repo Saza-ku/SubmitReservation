@@ -1,21 +1,27 @@
-from selenium import webdriver
-#import chromedriver_binary
 from time import sleep
 import datetime as dt
+import warnings
+#import chromedriver_binary
+from selenium import webdriver
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.chrome.options import Options
-import warnings
+
 
 warnings.simplefilter("ignore",DeprecationWarning) #DeprecationWarningをターミナルで非表示
 
 #引数：無。戻り値：PandAの初期画面を開いたbrowser。
-def new_browser():
+def new_browser(isVisible=False):
     #ブラウザはchrome。demo用にブラウザは表示。
-    options = Options()
-    options.add_argument('--headless')
-    browser = webdriver.Chrome(options=options)
-    browser.get("https://panda.ecs.kyoto-u.ac.jp/portal/")
-    return browser
+    if isVisible : 
+        browser = webdriver.Chrome()
+        browser.get("https://panda.ecs.kyoto-u.ac.jp/portal/")
+        return browser
+    else :
+        options = Options()
+        options.add_argument('--headless')
+        browser = webdriver.Chrome(options=options)
+        browser.get("https://panda.ecs.kyoto-u.ac.jp/portal/")
+        return browser
 
 #引数：browser,ユーザーID,パスワード。戻り値：loginに成功した場合True。
 def log_in(abrowser,userid,password):
@@ -138,8 +144,8 @@ def go_to_assignment(abrowser,assignmentName):
 #課題の提出ボタンを押します。何らかの理由で提出できなかった場合、TotalTimeまで提出を試みます。
 def submit(abrowser):
     count = 0
-    sleepTime = 5
-    totalTime = 10
+    sleepTime = 0.5
+    totalTime = 1
 
     beforeUrl = afterUrl = abrowser.current_url
 
@@ -175,19 +181,20 @@ def crawl_panda(userId,password):
     go_to_site_setup(browser)
 
     to_do_list = []
-    worksite_url_list = []
+    worksite_url_and_worksite_name_list = [] #[URL,講義名]のリスト。
 
-    for worksiteButton in browser.find_elements_by_partial_link_text("2020後期火") : #テスト中の負荷削減のため、この文字列にしています。
-        worksite_url_list.append(worksiteButton.get_attribute("href"))
+    for worksiteButton in browser.find_elements_by_partial_link_text("2020後期") : #テスト中の負荷削減のため、この文字列にしています。
+        worksite_url_and_worksite_name_list.append([worksiteButton.get_attribute("href"),worksiteButton.text])
 
-    for worksite_url in worksite_url_list :
+    for worksite_url_and_worksite_name in worksite_url_and_worksite_name_list :
+        worksite_url = worksite_url_and_worksite_name[0]
+        worksite_name = worksite_url_and_worksite_name[1]
+        
         #各講義の課題タブを開きます。
         browser.get(worksite_url)
-
         assignmentTabButton = browser.find_element_by_partial_link_text("課題")
         assignmentTabUrl = assignmentTabButton.get_attribute("href")
         browser.get(assignmentTabUrl)
-
         sleep(1)
 
         #各課題のURLを取得します。
@@ -208,13 +215,13 @@ def crawl_panda(userId,password):
                 deadline = dt.datetime.strptime(td_list[4].text+":00","%Y/%m/%d %H:%M:%S")
                 
                 now = dt.datetime.now()
-                submitDeadline = now + dt.timedelta(weeks=10) #テストののため、この値にしています。
-                solveDeadline = now + dt.timedelta(weeks=20) #テストののため、この値にしています。
+                submitDeadline = now + dt.timedelta(hours=1) #テストののため、この値にしています。
+                solveDeadline = now + dt.timedelta(weeks=2) #テストののため、この値にしています。
 
                 if status == "未開始" and now <= deadline <= submitDeadline :
                     assignmentUrl_list.append(assignmentButton.get_attribute("href"))
                 if status == "未開始" and now <= deadline <= solveDeadline : 
-                    to_do_list.append([assignmentButton.text,td_list[4].text])
+                    to_do_list.append([worksite_name,assignmentButton.text,td_list[4].text])
             
             for assignmentUrl in assignmentUrl_list : 
                 browser.get(assignmentUrl)
@@ -228,3 +235,5 @@ def crawl_panda(userId,password):
     browser.quit()
 
     return to_do_list
+
+#===============================================================================
