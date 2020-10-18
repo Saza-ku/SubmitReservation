@@ -19,23 +19,17 @@ def login_access():
         )
     if request.method == 'POST':
         id = request.form['id']
-        password = request.form['password']
 
         #エラーチェック
         error_message = None
         if not id:
             error_message = 'IDの入力は必須です'
-        elif not password:
-            error_message = 'パスワードの入力は必須です'
 
         user = session.querry(User).filter_by(name = 'id').first()
 
         #ユーザー名ミス
         if user.id is None:
             error_message = 'ユーザー名が正しくありません'
-        #パスワードミス
-        elif user.password != password:
-            error_message = 'パスワードが正しくありません'
 
         #エラーを表示
         if error_message is not None:
@@ -43,7 +37,6 @@ def login_access():
             return redirect(url_for('login_access'))
 
         #エラーがなければログイン完了
-        session['user_id'] = user.id
         flash('{}さんとしてログインしました'.format(id), category = 'alert alert-info')
         #return redirect(url_for('view_home'))
         return render_template('login.html', id = user.id)
