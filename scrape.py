@@ -225,36 +225,3 @@ def crawl_panda(userId,password):
     browser.quit()
 
     return to_do_list
-
-#===============================================================================
-
-#main
-userId = "a0189726"
-password = "Toriaezu2"
-worksiteName = "量子物理学２（材原宇）〈情報〉"
-assignmentName = "10/20分課題"
-
-'''
-browser = new_browser()
-
-if log_in(browser,userId,password) :
-    print("log-in succeeded")
-else :
-    browser.quit()
-    exit
-
-go_to_worksite(browser,worksiteName)
-go_to_assignment(browser,assignmentName)
-#submit(browser)
-'''
-
-print(log_in_check(userId,password))
-
-'''
-to_do_list = crawl_panda(userId,password)
-
-for to_do in to_do_list :
-        print(to_do[0] + " =====> " + to_do[1])
-'''
-
-exit
