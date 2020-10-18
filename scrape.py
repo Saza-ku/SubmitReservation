@@ -1,22 +1,19 @@
 from selenium import webdriver
 #import chromedriver_binary
 from time import sleep
-import datetime
+import datetime as dt
 from selenium.webdriver.support.select import Select
+from selenium.webdriver.chrome.options import Options
+import warnings
 
-def dating(hoge):
-    k = hoge.split('/')
-    return datetime.date(int(k[0]),int(k[1]),int(k[2]))
-
-def make_datetime(hoge,fuga):
-    k = fuga.split(':')
-    l = hoge.split('/')
-    return datetime.datetime(int(l[0]),int(l[1]),int(l[2]),int(k[0]),int(k[1]))
+warnings.simplefilter("ignore",DeprecationWarning) #DeprecationWarningをターミナルで非表示
 
 #引数：無。戻り値：PandAの初期画面を開いたbrowser。
 def new_browser():
     #ブラウザはchrome。demo用にブラウザは表示。
-    browser = webdriver.Chrome()
+    options = Options()
+    options.add_argument('--headless')
+    browser = webdriver.Chrome(options=options)
     browser.get("https://panda.ecs.kyoto-u.ac.jp/portal/")
     return browser
 
@@ -32,28 +29,27 @@ def log_in(abrowser,userid,password):
     useridBox.send_keys(userid)
     passwordBox = abrowser.find_element_by_id("password")
     passwordBox.send_keys(password)
-
     sleep(1)
 
     login = abrowser.find_element_by_name("submit")
     login.click()
-
     sleep(1)
     
     afterUrl = abrowser.current_url
     browser = abrowser
 
-    return beforeUrl != afterUrl #loginに成功した場合URLが変わる→URLが一致しないという条件式はTrue。
+    return (not afterUrl.startswith("https://cas.ecs.kyoto-u.ac.jp/cas/login")) #loginに成功した場合URLが変わる→URLが一致しないという条件式はTrue。
 
-#引数：browser,講義名。戻り値：成功した場合True。
-#loginからにしか対応していません！！課題を提出した後に戻る関数ではありません！！
-#講義名は一意に決まる名前にしてください。
-#戻り値に特に意味はありません。「ドラフトを保存」ができているということは講義が必ず存在するからです。
-def go_to_worksite(abrowser,worksiteName):
+def log_in_check(userId,password) :
+    browser = new_browser()
+    ret = log_in(browser,userId,password)
+    browser.quit()
+    return ret
+
+def go_to_site_setup(abrowser) :
     try :
         dashboard = abrowser.find_element_by_link_text("サイトセットアップ")
         dashboard.click()
-
         sleep(1)
 
         #iframe = abrowser.find_element_by_id(iframeId)
@@ -65,15 +61,32 @@ def go_to_worksite(abrowser,worksiteName):
         select_element = abrowser.find_element_by_id("selectPageSize")
         select_object = Select(select_element)
         select_object.select_by_visible_text("表示 1000 件ずつ")
-
         sleep(2)
+
+        browser = abrowser
+
+        return True
+
+    except Exception as e: 
+        print("COULD NOT GO TO SITE SETUP")
+        abrowser.quit()
+        exit
+        return False 
+
+
+#引数：browser,講義名。戻り値：成功した場合True。
+#loginからにしか対応していません！！課題を提出した後に戻る関数ではありません！！
+#講義名は一意に決まる名前にしてください。
+#戻り値に特に意味はありません。「ドラフトを保存」ができているということは講義が必ず存在するからです。
+def go_to_worksite(abrowser,worksiteName):
+    try :
+        go_to_site_setup(abrowser)
 
         #講義を選択。
         worksiteButton = abrowser.find_element_by_partial_link_text(worksiteName)
         worksiteUrl = worksiteButton.get_attribute("href")
         #worksiteButton.click() #自分用なので、テスト/クイズには対応していません。
         abrowser.get(worksiteUrl)
-            
         sleep(1)
 
         broser = abrowser
@@ -89,7 +102,6 @@ def go_to_worksite(abrowser,worksiteName):
 #引数：browser,課題提出先の名前（提出する課題ファイルの名前ではない）。戻り値：成功した場合True。
 #gotoWorksiteからにしか対応していません！！課題を提出した後にAssignmentに戻る関数ではありません！！
 #課題提出先の名前は一意に決まる名前にしてください。
-#戻り値に特に意味はありません。「ドラフトを保存」ができているということは課題提出先が必ず存在するからです。
 def go_to_assignment(abrowser,assignmentName):
     #左のバーから"課題"を選択。
     assignmentTabButton = abrowser.find_element_by_partial_link_text("課題")
@@ -100,8 +112,8 @@ def go_to_assignment(abrowser,assignmentName):
     
     iframe = abrowser.find_element_by_class_name("portletMainIframe")
     abrowser.switch_to_frame(iframe)
-    tt = abrowser.title
-    assignment = abrowser.find_element_by_partial_link_text("課題")
+    #tt = abrowser.title
+    #assignment = abrowser.find_element_by_partial_link_text("課題")
     
     try :
         table = abrowser.find_element_by_xpath('/html/body/div/form/table')
@@ -109,7 +121,6 @@ def go_to_assignment(abrowser,assignmentName):
         assignmentUrl = assignmentButton.get_attribute("href")
         #assignmentButton.click()
         abrowser.get(assignmentUrl)
-
         sleep(1)
 
         browser = abrowser
@@ -123,45 +134,97 @@ def go_to_assignment(abrowser,assignmentName):
         return False 
 
 
-#引数。戻り値：成功した場合True。
+#引数：browser。戻り値：成功した場合True。
+#課題の提出ボタンを押します。何らかの理由で提出できなかった場合、TotalTimeまで提出を試みます。
 def submit(abrowser):
-    canSubmit = False
     count = 0
-    sleepTime = 30
+    sleepTime = 5
+    totalTime = 10
 
-    while ((not canSubmit) and count < 300/sleepTime) :
-        canSubmit = click_submit_button(abrowser)
-        count += 1
+    beforeUrl = afterUrl = abrowser.current_url
+
+    while (beforeUrl == afterUrl and count < totalTime/sleepTime) :
+        click_submit_button(abrowser)
         sleep(sleepTime)
+        afterUrl = abrowser.current_url
+        count += 1
+
+    return beforeUrl != afterUrl #提出に成功した場合URLが変わる→URLが一致しないという条件式はTrue。
 
 def click_submit_button(abrowser):
     try :
         submitButton = abrowser.find_element_by_id("post")
         submitButton.click()
         return True
+
     except Exception as e :
         return False
 
-#===============================================================================
-'''
-#main
-userId = "a0189727"
-password = "Toriaezu1"
-worksiteName = "量子物理学２（材原宇）〈情報〉"
-assignmentName = "10/20分課題"
+#引数：userId,password・戻り値：課題リスト。
+#①PandAをクロールし、締切まで一定期間にある未開始の課題を自動で提出します。提出するだけなので、「ドラフトを保存」を事前にする必要があります。
+#②クロールの過程で、締切まで一定期間にある未開始の課題をToDoリストに追加します。このToDoリストが戻り値になります。ToDoリストは各要素が「課題名」「締切」の2要素からなる2次元配列です。
+def crawl_panda(userId,password):
+    browser = new_browser()
+    
+    if log_in(browser,userId,password) :
+        print("log-in succeeded")
+    else :
+        browser.quit()
+        exit
 
-browser = new_browser()
+    go_to_site_setup(browser)
 
-if log_in(browser,userId,password) :
-    print("log-in succeeded")
-else :
+    to_do_list = []
+    worksite_url_list = []
+
+    for worksiteButton in browser.find_elements_by_partial_link_text("2020後期火") : #テスト中の負荷削減のため、この文字列にしています。
+        worksite_url_list.append(worksiteButton.get_attribute("href"))
+
+    for worksite_url in worksite_url_list :
+        #各講義の課題タブを開きます。
+        browser.get(worksite_url)
+
+        assignmentTabButton = browser.find_element_by_partial_link_text("課題")
+        assignmentTabUrl = assignmentTabButton.get_attribute("href")
+        browser.get(assignmentTabUrl)
+
+        sleep(1)
+
+        #各課題のURLを取得します。
+        #課題はデフォルトが200件表示なので、1000件表示する必要は無いと思っています。
+        iframe = browser.find_element_by_class_name("portletMainIframe")
+        browser.switch_to_frame(iframe)
+
+        try :
+            table = browser.find_element_by_xpath('/html/body/div/form/table')
+            assignmentUrl_list = [] 
+            tr_list = table.find_elements_by_tag_name("tr")
+
+            for tr in tr_list[1:] :
+                td_list = tr.find_elements_by_tag_name("td")
+
+                assignmentButton = (td_list[1].find_elements_by_tag_name("a"))[0]
+                status = td_list[2].text
+                deadline = dt.datetime.strptime(td_list[4].text+":00","%Y/%m/%d %H:%M:%S")
+                
+                now = dt.datetime.now()
+                submitDeadline = now + dt.timedelta(weeks=10) #テストののため、この値にしています。
+                solveDeadline = now + dt.timedelta(weeks=20) #テストののため、この値にしています。
+
+                if status == "未開始" and now <= deadline <= submitDeadline :
+                    assignmentUrl_list.append(assignmentButton.get_attribute("href"))
+                if status == "未開始" and now <= deadline <= solveDeadline : 
+                    to_do_list.append([assignmentButton.text,td_list[4].text])
+            
+            for assignmentUrl in assignmentUrl_list : 
+                browser.get(assignmentUrl)
+                sleep(2)
+                submit(browser)
+
+        #課題が存在しない場合、未提出の課題が存在しない場合
+        except Exception as e :
+            continue
+
     browser.quit()
-    exit
 
-go_to_worksite(browser,worksiteName)
-go_to_assignment(browser,assignmentName)
-submit(browser)
-
-browser.quit()
-exit
-'''
+    return to_do_list
