@@ -2,6 +2,7 @@ from flask import *  # 必要なライブラリのインポート
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String
 from user import User, session
+from scrape import new_browser, log_in
 
 app = Flask(__name__)  # アプリの設定
 app.secret_key = "b'Q\x08\xe1Nb\\\x9c\xc0\xa1\xdaABC\x94\xd5\x15\x13\xb3t\x1c\xcf\xba\x18\x05'"
@@ -63,6 +64,8 @@ def signup_access():
         if existing_id:
             error_message = 'このIDはすでに登録されています'
         #ログインできるかチェック
+        if not log_in(new_browser(), id, password):
+            error_message = 'PandAにログインできませんでした'
 
         #エラーを表示
         if error_message is not None:
