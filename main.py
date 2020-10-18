@@ -88,9 +88,12 @@ def logout():
 
 @app.route('/home')
 def view_home():
+    from scrape import crawl_panda
     user_id = request.args.get("id", "")
-    print(user_id)
-    return render_template('home.html', id=user_id)
+    # 課題リストを取得
+    user = session.query(User).filter(User.id == id).first()
+    assignments = crawl_panda(user_id, user.password)
+    return render_template('home.html', id=user_id, assignments = assignments)
 
 if __name__ == "__main__":  # 実行されたら
     app.run(debug=True, host='0.0.0.0', port=8888, threaded=True)  # デバッグモード、localhost:8888 で スレッドオンで実行
