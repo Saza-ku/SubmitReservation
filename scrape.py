@@ -144,8 +144,8 @@ def go_to_assignment(abrowser,assignmentName):
 #課題の提出ボタンを押します。何らかの理由で提出できなかった場合、TotalTimeまで提出を試みます。
 def submit(abrowser):
     count = 0
-    sleepTime = 1
-    totalTime = 2
+    sleepTime = 0.5
+    totalTime = 1
 
     beforeUrl = afterUrl = abrowser.current_url
 
@@ -183,7 +183,7 @@ def crawl_panda(userId,password):
     to_do_list = []
     worksite_url_and_worksite_name_list = [] #[URL,講義名]のリスト。
 
-    for worksiteButton in browser.find_elements_by_partial_link_text("2020後期火") : #テスト中の負荷削減のため、この文字列にしています。
+    for worksiteButton in browser.find_elements_by_partial_link_text("2020後期") : #テスト中の負荷削減のため、この文字列にしています。
         worksite_url_and_worksite_name_list.append([worksiteButton.get_attribute("href"),worksiteButton.text])
 
     for worksite_url_and_worksite_name in worksite_url_and_worksite_name_list :
@@ -215,8 +215,8 @@ def crawl_panda(userId,password):
                 deadline = dt.datetime.strptime(td_list[4].text+":00","%Y/%m/%d %H:%M:%S")
                 
                 now = dt.datetime.now()
-                submitDeadline = now + dt.timedelta(weeks=10) #テストののため、この値にしています。
-                solveDeadline = now + dt.timedelta(weeks=20) #テストののため、この値にしています。
+                submitDeadline = now + dt.timedelta(hours=1) #テストののため、この値にしています。
+                solveDeadline = now + dt.timedelta(weeks=2) #テストののため、この値にしています。
 
                 if status == "未開始" and now <= deadline <= submitDeadline :
                     assignmentUrl_list.append(assignmentButton.get_attribute("href"))
