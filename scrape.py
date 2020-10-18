@@ -3,6 +3,7 @@ from selenium import webdriver
 from time import sleep
 import datetime as dt
 from selenium.webdriver.support.select import Select
+from selenium.webdriver.chrome.options import Options
 import warnings
 
 warnings.simplefilter("ignore",DeprecationWarning) #DeprecationWarningをターミナルで非表示
@@ -10,7 +11,9 @@ warnings.simplefilter("ignore",DeprecationWarning) #DeprecationWarningをター�
 #引数：無。戻り値：PandAの初期画面を開いたbrowser。
 def new_browser():
     #ブラウザはchrome。demo用にブラウザは表示。
-    browser = webdriver.Chrome()
+    options = Options()
+    options.add_argument('--headless')
+    browser = webdriver.Chrome(options=options)
     browser.get("https://panda.ecs.kyoto-u.ac.jp/portal/")
     return browser
 
