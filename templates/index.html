@@ -6,6 +6,11 @@
     <title>パンダ提出アプリのトップページ</title>
   </head>
   <body>
+    <!-- flashで送られたエラーメッセージの表示 -->
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="{{ category }}">{{ message }}</div>
+    {% endfor %}
+
     <!-- ログイン -->
     <form  action="{{url_for('login_access')}}" method="POST">
       <P><label>ID｜<input type="text" name="id"></label></P>
