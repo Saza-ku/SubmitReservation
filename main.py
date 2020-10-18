@@ -45,7 +45,8 @@ def login_access():
         #エラーがなければログイン完了
         session['user_id'] = user.id
         flash('{}さんとしてログインしました'.format(id), category = 'alert alert-info')
-        return redirect(url_for('view_home'))
+        #return redirect(url_for('view_home'))
+        return render_template('login.html', id = user.id)
 
 
 @app.route('/signup', methods=['GET', 'POST'])
