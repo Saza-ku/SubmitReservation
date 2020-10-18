@@ -35,7 +35,13 @@ def log_in(abrowser,userid,password):
     afterUrl = abrowser.current_url
     browser = abrowser
 
-    return beforeUrl != afterUrl #loginに成功した場合URLが変わる→URLが一致しないという条件式はTrue。
+    return (not afterUrl.startswith("https://cas.ecs.kyoto-u.ac.jp/cas/login")) #loginに成功した場合URLが変わる→URLが一致しないという条件式はTrue。
+
+def log_in_check(userId,password) :
+    browser = new_browser()
+    ret = log_in(browser,userId,password)
+    browser.quit()
+    return ret
 
 def go_to_site_setup(abrowser) :
     try :
@@ -223,8 +229,8 @@ def crawl_panda(userId,password):
 #===============================================================================
 
 #main
-userId = "a0189727"
-password = "Toriaezu1"
+userId = "a0189726"
+password = "Toriaezu2"
 worksiteName = "量子物理学２（材原宇）〈情報〉"
 assignmentName = "10/20分課題"
 
@@ -242,9 +248,13 @@ go_to_assignment(browser,assignmentName)
 #submit(browser)
 '''
 
+print(log_in_check(userId,password))
+
+'''
 to_do_list = crawl_panda(userId,password)
 
 for to_do in to_do_list :
         print(to_do[0] + " =====> " + to_do[1])
+'''
 
 exit
