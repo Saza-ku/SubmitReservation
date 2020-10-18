@@ -6,6 +6,11 @@
     <title>{{ id }}さんのマイページ</title>
 </head>
 <body>
+    <!-- flashで送られたエラーメッセージの表示 -->
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="{{ category }}">{{ message }}</div>
+    {% endfor %}
+
     <h3>{{ id }}さんの課題リスト</h3>
 </body>
 </html>
